@@ -1,19 +1,103 @@
-#include <mcs51/8051.h>
+#include "type.h"
+#include "seven_seg_display.h"
 
-typedef unsigned char      u8;
-typedef unsigned short int u16;
+#define beep P1_5
+#define led1 P2_0
 
-void __delay(u16 time)
+static __sbit flags;
+
+void __delay(u16 time) //{
 {
     while(time--);
-}
+} //}
 
-void main()
+void __init_interrupt() //{
 {
-    while(1) {
-        P2_0 = 1;
-        __delay(50000);
-        P2_0 = 0;
-        __delay(50000);
+    // interrupt 0, external interrupt 0
+    EX0 = 1;
+    PX0 = 0;
+
+    // interrupt 2, external interrupt 1
+    EX1 = 1;
+    PX1 = 1;
+
+    // interrupt 1, timer interrupt 0
+    ET0 = 1;
+    PT0 = 1;
+
+    EA  = 1;
+} //}
+
+#define DELAY __delay(50000)
+void __light_flickering() //{
+{
+    P2_0 = 0; DELAY; P2_0 = 1;
+    P2_1 = 0; DELAY; P2_1 = 1;
+    P2_2 = 0; DELAY; P2_2 = 1;
+    P2_3 = 0; DELAY; P2_3 = 1;
+    P2_4 = 0; DELAY; P2_4 = 1;
+    P2_5 = 0; DELAY; P2_5 = 1;
+    P2_6 = 0; DELAY; P2_6 = 1;
+    P2_7 = 0; DELAY; P2_7 = 1;
+} //}
+
+void __reverse_light_flickering() //{
+{
+    P2_7 = 0; DELAY; P2_7 = 1;
+    P2_6 = 0; DELAY; P2_6 = 1;
+    P2_5 = 0; DELAY; P2_5 = 1;
+    P2_4 = 0; DELAY; P2_4 = 1;
+    P2_3 = 0; DELAY; P2_3 = 1;
+    P2_2 = 0; DELAY; P2_2 = 1;
+    P2_1 = 0; DELAY; P2_1 = 1;
+    P2_0 = 0; DELAY; P2_0 = 1;
+} //}
+
+void flickering_led1() //{
+{
+    led1 = 0; DELAY; led1 = 1; DELAY;
+} //}
+
+void __beep(u16 a1) //{
+{
+    beep = 0;
+    __delay(a1);
+    beep = 1;
+    __delay(a1);
+} //}
+
+void __ext_int0_handle() __interrupt 0 //{
+{
+    flags = 1;
+    while(flags) {
+        __beep(800);
     }
-}
+    return;
+} //}
+
+void __timer0_handle() __interrupt 1 //{
+{
+    flags = 0;
+} //}
+
+void __ext_int1_handle() __interrupt 2 //{
+{
+    /*
+    u16 i = 0xFFFF;
+    while(i--) {
+        __beep(1600);
+    }
+    return;
+    */
+    flags = 0;
+    return;
+} //}
+
+void main() //{
+{
+    __init_interrupt();
+    ssd_set(1, 10);
+    while(1) {
+        flickering_led1();
+    }
+} //}

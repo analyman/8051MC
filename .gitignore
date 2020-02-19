@@ -6,6 +6,7 @@
 *.mem
 *.rel
 *.rst
+*.lst
 *.sym
 *.asm
 
