@@ -2,7 +2,7 @@ CC=sdcc
 ALL_CFLAGS=$(CFLAGS)
 LDFALGS=
 
-src_files=main.c seven_seg_display.c utils.c
+src_files=main.c seven_seg_display.c utils.c matrix_keyboard.c beep.c
 rel_files=$(patsubst %.c,%.rel,$(src_files))
 ihx_files=main.ihx
 hex_files=main.hex

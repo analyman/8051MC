@@ -1,15 +1,14 @@
 #include "type.h"
+#include "utils.h"
 #include "seven_seg_display.h"
+#include "matrix_keyboard.h"
+#include "beep.h"
 
-#define beep P1_5
 #define led1 P2_0
 
 static __sbit flags;
 
-void __delay(u16 time) //{
-{
-    while(time--);
-} //}
+#define __delay delay
 
 void __init_interrupt() //{
 {
@@ -58,19 +57,11 @@ void flickering_led1() //{
     led1 = 0; DELAY; led1 = 1; DELAY;
 } //}
 
-void __beep(u16 a1) //{
-{
-    beep = 0;
-    __delay(a1);
-    beep = 1;
-    __delay(a1);
-} //}
-
 void __ext_int0_handle() __interrupt 0 //{
 {
     flags = 1;
     while(flags) {
-        __beep(800);
+        beep(800);
     }
     return;
 } //}
@@ -85,7 +76,7 @@ void __ext_int1_handle() __interrupt 2 //{
     /*
     u16 i = 0xFFFF;
     while(i--) {
-        __beep(1600);
+        beep(1600);
     }
     return;
     */
@@ -95,9 +86,25 @@ void __ext_int1_handle() __interrupt 2 //{
 
 void main() //{
 {
-    __init_interrupt();
-    ssd_set(1, 10);
+//    __init_interrupt();
     while(1) {
-        flickering_led1();
+        P2_0 = 0;
+        P2_7 = 1;
+    }
+    ssd_set(0, 15);
+    ssd_set(1, 15);
+    while(1) {
+        get_keyboard_value();
+        if(matrix_keyboard_value != 0) {
+            if(matrix_keyboard_value == 16) {
+                ssd_set(0, 1);
+                ssd_set(1, 0);
+            } else {
+                ssd_set(0, matrix_keyboard_value);
+                ssd_set(1, 16);
+            }
+        }
+        ssd_show();
     }
 } //}
+
